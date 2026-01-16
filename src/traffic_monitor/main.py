@@ -5,7 +5,7 @@ from types import TracebackType
 
 from PyQt6.QtWidgets import QApplication
 
-from traffic_monitor.gui_app import MainWindow
+from traffic_monitor.ui.gui_app import MainWindow
 
 
 # Hàm này sẽ bắt mọi lỗi chưa được xử lý và in ra terminal
@@ -37,7 +37,3 @@ def main() -> None:
     # Chạy vòng lặp sự kiện của ứng dụng
     # sys.exit đảm bảo chương trình kết thúc sạch sẽ khi đóng cửa sổ
     sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()

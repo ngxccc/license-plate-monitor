@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from traffic_monitor.detector import TrafficDetector
+from traffic_monitor.ai.detector import TrafficDetector
 from traffic_monitor.utils.youtube import cap_from_youtube
 
 
