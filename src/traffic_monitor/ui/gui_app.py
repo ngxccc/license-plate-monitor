@@ -30,13 +30,21 @@ class VideoThread(QThread):
     new_detection_signal = pyqtSignal(dict)
     # Gửi data thống kê: {"car": 10, "bike": 5}
     stats_signal = pyqtSignal(dict)
+    # Gửi lại đối tượng detector sau khi nạp thành công
+    detector_ready_signal = pyqtSignal(object)
 
-    # thêm validate source_type
-    def __init__(self, source: str, source_type: str, resolution: str):
+    def __init__(
+        self,
+        source: str,
+        source_type: str,
+        resolution: str,
+        detector: TrafficDetector | None = None,
+    ):
         super().__init__()
         self.source = source
         self.source_type = source_type.lower()
         self.resolution = resolution
+        self.detector = detector
         self._run_flag = True
         self.last_tracked_ids: set[int] = set()
         # Tổng số lượng theo từng loại xe
@@ -44,13 +52,16 @@ class VideoThread(QThread):
 
     def run(self) -> None:
         try:
-            # thêm đã load rồi thì không cần load lại nữa
-            detector = TrafficDetector()
+            if self.detector is None:
+                print("[*] Đang nạp Model lần đầu tiên...")
+                self.detector = TrafficDetector()
+                self.detector_ready_signal.emit(self.detector)
+            else:
+                print("[*] Sử dụng Model đã nạp sẵn.")
 
             cap = None
 
             if self.source_type == "youtube":
-                # thêm chọn độ phân giải từ GUI
                 cap = cap_from_youtube(self.source, self.resolution)
             elif self.source_type == "webcam":
                 camera_id = int(self.source) if self.source.isdigit() else 0
@@ -72,7 +83,7 @@ class VideoThread(QThread):
                     break
 
                 # Xử lý frame bằng YOLO
-                results = detector.process_frame(frame)
+                results = self.detector.process_frame(frame)
                 if not results:
                     continue
 
@@ -207,6 +218,7 @@ class MainWindow(QMainWindow):
         self.resize(1300, 800)
         self.setStyleSheet("background-color: #1a1a1a;")
         self.video_thread: VideoThread | None = None
+        self.stored_detector: TrafficDetector | None = None
 
         # Layout chính
         main_vbox = QVBoxLayout()
@@ -347,7 +359,10 @@ class MainWindow(QMainWindow):
             if not source and source_type.lower() != "webcam":
                 return  # Cần có link hoặc đường dẫn
 
-            self.video_thread = VideoThread(source, source_type, res)
+            self.video_thread = VideoThread(
+                source, source_type, res, self.stored_detector
+            )
+            self.video_thread.detector_ready_signal.connect(self.save_detector)
             self.video_thread.change_pixmap_signal.connect(self.update_video)
             self.video_thread.new_detection_signal.connect(self.add_detection_card)
             self.video_thread.stats_signal.connect(self.update_stats)
@@ -355,6 +370,11 @@ class MainWindow(QMainWindow):
 
             self.start_btn.setText("Dừng lại")
             self.start_btn.setStyleSheet("background-color: #c62828; color: white;")
+
+    def save_detector(self, detector_obj: TrafficDetector) -> None:
+        """Lưu trữ detector vào MainWindow để dùng lại"""
+        self.stored_detector = detector_obj
+        print("[+] Đã lưu trữ Model vào bộ nhớ hệ thống.")
 
     def on_url_changed(self, text: str) -> None:
         """Kiểm tra nếu là link YouTube thì tự động lấy độ phân giải"""
