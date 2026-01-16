@@ -1,9 +1,11 @@
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cv2
-import torch
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
+
+if TYPE_CHECKING:
+    from traffic_monitor.ai.detector import TrafficDetector
 from PyQt6.QtGui import QCloseEvent, QImage, QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
@@ -19,7 +21,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from traffic_monitor.ai.detector import TrafficDetector
 from traffic_monitor.utils.youtube import cap_from_youtube, list_video_streams
 
 
@@ -53,6 +54,9 @@ class VideoThread(QThread):
     def run(self) -> None:
         try:
             if self.detector is None:
+                # Conditional Import giúp tối ưu việc import và hiệu năng
+                from traffic_monitor.ai.detector import TrafficDetector
+
                 print("[*] Đang nạp Model lần đầu tiên...")
                 self.detector = TrafficDetector()
                 self.detector_ready_signal.emit(self.detector)
@@ -94,6 +98,8 @@ class VideoThread(QThread):
                     ids_raw = res.boxes.id
 
                     # Kiểm tra nếu là PyTorch Tensor (thường xảy ra khi dùng GPU)
+                    import torch
+
                     if isinstance(ids_raw, torch.Tensor):
                         ids = ids_raw.cpu().numpy().astype(int).tolist()
                     else:
