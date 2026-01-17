@@ -55,13 +55,13 @@ class DetectionCard(QFrame):
         # Thông tin chi tiết
         info_layout = QVBoxLayout()
         id_label = QLabel(f"<b>ID: {data['id']}</b> | {data['label'].upper()}")
-        id_label.setStyleSheet("color: #3498db; font-size: 13px;")
+        id_label.setStyleSheet("color: #3498db; font-size: 13px; margin-left: 5px;")
 
         conf_label = QLabel(f"Độ tin cậy: {data['conf']:.2f}")
-        conf_label.setStyleSheet("color: #bbb; font-size: 11px;")
+        conf_label.setStyleSheet("color: #bbb; font-size: 11px; margin-left: 5px;")
 
-        time_label = QLabel(f"⏱ {data['time']}")
-        time_label.setStyleSheet("color: #888; font-size: 11px;")
+        time_label = QLabel(f"{data['time']}")
+        time_label.setStyleSheet("color: #888; font-size: 11px; margin-left: 5px;")
 
         info_layout.addWidget(id_label)
         info_layout.addWidget(conf_label)

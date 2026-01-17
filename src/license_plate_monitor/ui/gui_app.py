@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 from PyQt6.QtGui import QCloseEvent, QImage, QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
+    QDoubleSpinBox,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -96,6 +97,14 @@ class MainWindow(QMainWindow):
         self.res_combo.setEnabled(False)
         self.res_combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
 
+        control_layout.addWidget(QLabel("Độ tin cậy:"))
+        self.conf_spin = QDoubleSpinBox()
+        self.conf_spin.setRange(0.1, 1.0)
+        self.conf_spin.setSingleStep(0.05)
+        self.conf_spin.setValue(0.5)
+        self.conf_spin.setFixedWidth(80)
+        control_layout.addWidget(self.conf_spin)
+
         # Nút Start/Stop
         self.start_btn = QPushButton("Bắt đầu")
         self.start_btn.clicked.connect(self.toggle_detection)
@@ -127,7 +136,7 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(self.video_label, stretch=4)  # Chiếm 4 phần diện tích
 
         # Clear History Button
-        self.clear_sidebar_btn = QPushButton("🗑 Xóa lịch sử")
+        self.clear_sidebar_btn = QPushButton("Xóa lịch sử")
         self.clear_sidebar_btn.setStyleSheet(
             "background-color: #444; color: white; margin: 5px;"
         )
@@ -246,9 +255,10 @@ class MainWindow(QMainWindow):
             self.progress_bar.show()
             self.progress_bar.setValue(0)
             self.stats_label.setText("📊 THỐNG KÊ: Đang khởi tạo...")
+            conf_threshold = self.conf_spin.value()
 
             self.video_thread = VideoThread(
-                source, source_type, res, self.stored_detector
+                source, source_type, res, self.stored_detector, conf_threshold
             )
 
             self.video_thread.progress_signal.connect(self.update_notification)
@@ -275,7 +285,7 @@ class MainWindow(QMainWindow):
         else:
             self.video_thread.pause()
             self.pause_btn.setText("Tiếp tục")
-            self.status_bar.showMessage("Đang tạm dừng - Bạn có thể xem kỹ đoạn này.")
+            self.status_bar.showMessage("Đang tạm dừng.")
 
     def update_notification(
         self, message: str, value: int, wait_time_ms: int = 3000
