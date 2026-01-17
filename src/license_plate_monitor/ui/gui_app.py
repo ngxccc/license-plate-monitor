@@ -126,6 +126,13 @@ class MainWindow(QMainWindow):
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         content_layout.addWidget(self.video_label, stretch=4)  # Chiếm 4 phần diện tích
 
+        # Clear History Button
+        self.clear_sidebar_btn = QPushButton("🗑 Xóa lịch sử")
+        self.clear_sidebar_btn.setStyleSheet(
+            "background-color: #444; color: white; margin: 5px;"
+        )
+        self.clear_sidebar_btn.clicked.connect(self.clear_sidebar)
+
         # Sidebar Area
         self.sidebar_scroll = QScrollArea()
         self.sidebar_scroll.setWidgetResizable(True)
@@ -165,7 +172,8 @@ class MainWindow(QMainWindow):
 
     def add_detection_card(self, data: dict[str, Any]) -> None:
         # Giới hạn số lượng card trên màn hình để tránh crash
-        if self.sidebar_layout.count() > 15:
+        max_cards = 20
+        while self.sidebar_layout.count() >= max_cards:
             item = self.sidebar_layout.takeAt(self.sidebar_layout.count() - 1)
             if item:
                 widget = item.widget()
@@ -175,6 +183,20 @@ class MainWindow(QMainWindow):
         # Thêm card mới lên trên cùng của sidebar
         card = DetectionCard(data)
         self.sidebar_layout.insertWidget(0, card)
+        # Hiệu ứng cuộn nhẹ nhàng về đầu danh sách
+        scrollbar = self.sidebar_scroll.verticalScrollBar()
+        if scrollbar is not None:
+            scrollbar.setValue(0)
+
+    def clear_sidebar(self) -> None:
+        """Xóa sạch các card trong sidebar"""
+        while self.sidebar_layout.count() > 0:
+            item = self.sidebar_layout.takeAt(0)
+            if item:
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+        self.status_bar.showMessage("Đã xóa lịch sử nhận diện.")
 
     def on_source_type_changed(self, text: str) -> None:
         """Tự động ẩn/hiện độ phân giải tùy theo nguồn"""

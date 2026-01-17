@@ -17,7 +17,7 @@ class LicensePlateDetector:
         Xử lý frame và trả về ảnh đã vẽ cùng danh sách các đối tượng mới phát hiện.
         """
         results = self.model.track(
-            frame, persist=True, tracker="bytetrack.yaml", verbose=False
+            frame, persist=True, tracker="bytetrack.yaml", imgsz=800, verbose=False
         )
 
         if not results or results[0].boxes is None or results[0].boxes.id is None:

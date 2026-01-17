@@ -1,6 +1,5 @@
 from typing import Any
 
-import cv2
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import (
@@ -16,31 +15,57 @@ class DetectionCard(QFrame):
 
     def __init__(self, data: dict[str, Any]) -> None:
         super().__init__()
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setStyleSheet(
-            "background-color: #2c2c2c; border-radius: 5px; margin: 2px; color: white;"
-        )
-        layout = QHBoxLayout(self)
+        self.setup_ui(data)
 
-        # Ảnh cắt
+    def setup_ui(self, data: dict[str, Any]) -> None:
+        self.setStyleSheet("""
+            DetectionCard {
+                background-color: #2c2c2c;
+                border-radius: 8px;
+                border: 1px solid #444;
+                margin-bottom: 5px;
+            }
+            DetectionCard:hover {
+                background-color: #3d3d3d;
+                border: 1px solid #3498db;
+            }
+        """)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Hiển thị ảnh cắt
         img_label = QLabel()
+        img_label.setFixedSize(80, 80)
+
         h, w, ch = data["image"].shape
         qimg = QImage(
-            cv2.cvtColor(data["image"], cv2.COLOR_BGR2RGB).data,
-            w,
-            h,
-            w * ch,
-            QImage.Format.Format_RGB888,
-        ).copy()
-        img_label.setPixmap(
-            QPixmap.fromImage(qimg).scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio)
+            data["image"].tobytes(), w, h, w * ch, QImage.Format.Format_RGB888
         )
 
-        # Thông tin văn bản
+        pixmap = QPixmap.fromImage(qimg).scaled(
+            80,
+            80,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        img_label.setPixmap(pixmap)
+        img_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Thông tin chi tiết
         info_layout = QVBoxLayout()
-        info_layout.addWidget(QLabel(f"ID: {data['id']} - {data['label']}"))
-        info_layout.addWidget(QLabel(f"Conf: {data['conf']:.2f}"))
-        info_layout.addWidget(QLabel(f"Time: {data['time']}"))
+        id_label = QLabel(f"<b>ID: {data['id']}</b> | {data['label'].upper()}")
+        id_label.setStyleSheet("color: #3498db; font-size: 13px;")
+
+        conf_label = QLabel(f"Độ tin cậy: {data['conf']:.2f}")
+        conf_label.setStyleSheet("color: #bbb; font-size: 11px;")
+
+        time_label = QLabel(f"⏱ {data['time']}")
+        time_label.setStyleSheet("color: #888; font-size: 11px;")
+
+        info_layout.addWidget(id_label)
+        info_layout.addWidget(conf_label)
+        info_layout.addWidget(time_label)
 
         layout.addWidget(img_label)
         layout.addLayout(info_layout)
