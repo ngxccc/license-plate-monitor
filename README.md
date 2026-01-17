@@ -81,11 +81,11 @@ yolo export model=path-to-your-model/yolo.pt format=openvino int8=True
 Start the application using **uv**:
 
 ```bash
-uv run traffic-app
+uv run license-plate-app
 ```
 
 Or run with Python directly:
 
 ```bash
-python -m traffic_monitor
+python -m license_plate_monitor
 ```
