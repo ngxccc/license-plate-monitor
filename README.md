@@ -63,7 +63,7 @@ If you prefer the standard Python tools, use **venv**.
 3. **Install the package:**
 
     ```bash
-    uv pip install .[dev]
+    uv pip install -e .[dev]
     ```
 
 ## 🧠 Model Export (OpenVINO)
@@ -73,7 +73,7 @@ To get the best performance on Intel CPUs, you must export the YOLO model to **O
 Run this command in your terminal:
 
 ```bash
-yolo export model=path-to-your-model/yolo.pt format=openvino int8=True
+yolo export model=path/to/model/yolo.pt format=openvino int8=True data=path/to/data.yaml
 ```
 
 ## ▶️ Usage

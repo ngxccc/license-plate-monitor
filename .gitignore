@@ -1,6 +1,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode,windows
 
+runs/
+*.pt
+models/
+data/
+dataset/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -219,8 +225,3 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,windows
-
-runs/
-*.pt
-models/
-data/

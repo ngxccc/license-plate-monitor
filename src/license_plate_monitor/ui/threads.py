@@ -34,41 +34,45 @@ class VideoThread(QThread):
         self.detector = detector
         self._run_flag = True
         self._is_paused = False
-        self.last_tracked_ids: set[int] = set()
         # Tổng số lượng theo từng loại xe
         self.counts: dict[str, int] = {}
 
+    def _initialize_detector(self) -> None:
+        """Helper để nạp mô hình AI"""
+        if self.detector is None:
+            self.progress_signal.emit("Đang nạp mô hình AI...", 20)
+            self.detector = LicensePlateDetector()
+            self.progress_signal.emit("Nạp mô hình thành công!", 100)
+            self.detector_ready_signal.emit(self.detector)
+        else:
+            print("[*] Sử dụng Model đã nạp sẵn.")
+
+    def _setup_capture(self) -> cv2.VideoCapture:
+        """Helper để khởi tạo cv2.VideoCapture dựa trên loại nguồn"""
+        self.progress_signal.emit(f"Đang kết nối tới {self.source_type}...", 50)
+
+        if self.source_type == "youtube":
+            return cap_from_youtube(self.source, self.resolution)
+
+        if self.source_type == "webcam":
+            camera_id = int(self.source) if self.source.isdigit() else 0
+            return cv2.VideoCapture(camera_id)
+
+        if self.source_type in ["local file", "link mp4", "rtsp camera"]:
+            return cv2.VideoCapture(self.source)
+
+        raise ValueError(f"Nguồn '{self.source_type}' không được hỗ trợ.")
+
     def run(self) -> None:
         try:
-            if self.detector is None:
-                # Conditional Import giúp tối ưu việc import và hiệu năng
-                from license_plate_monitor.ai.detector import LicensePlateDetector
+            self._initialize_detector()
 
-                print("[*] Đang nạp Model lần đầu tiên...")
-                self.progress_signal.emit("Đang nạp mô hình AI...", 20)
-                self.detector = LicensePlateDetector()
-                self.progress_signal.emit("Nạp mô hình thành công!", 100)
-                self.detector_ready_signal.emit(self.detector)
-            else:
-                print("[*] Sử dụng Model đã nạp sẵn.")
-
-            self.progress_signal.emit(f"Đang kết nối tới {self.source_type}...", 50)
-
-            cap = None
-
-            if self.source_type == "youtube":
-                cap = cap_from_youtube(self.source, self.resolution)
-            elif self.source_type == "webcam":
-                camera_id = int(self.source) if self.source.isdigit() else 0
-                cap = cv2.VideoCapture(camera_id)
-            elif self.source_type in ["local file", "link mp4", "rtsp camera"]:
-                # File local, link .mp4 trực tiếp, hoặc RTSP camera
-                cap = cv2.VideoCapture(self.source)
-            else:
-                raise ValueError(f"Nguồn '{self.source_type}' không được hỗ trợ.")
+            cap = self._setup_capture()
 
             if not cap.isOpened():
-                print(f"[-] LỖI: Không thể mở nguồn {self.source_type}")
+                error_msg = f"Không thể mở nguồn: {self.source_type}"
+                self.progress_signal.emit(f"[-] LỖI: {error_msg}", 0)
+                print(f"[-] {error_msg}")
                 return
 
             self.progress_signal.emit("Bắt đầu nhận diện!", 100)
@@ -79,65 +83,23 @@ class VideoThread(QThread):
                     continue
 
                 success, frame = cap.read()
-
                 if not success:
                     break
 
                 # Xử lý frame bằng YOLO
-                results = self.detector.process_frame(frame)
-                if not results:
-                    continue
+                if self.detector is None:
+                    break
+                annotated_frame, detections = self.detector.process_frame(frame)
 
-                res = results[0]
-                annotated_frame = res.plot()
+                for det in detections:
+                    # Cập nhật thống kê xe
+                    label = det["label"]
+                    self.counts[label] = self.counts.get(label, 0) + 1
+                    self.stats_signal.emit(self.counts)
 
-                if res.boxes is not None and res.boxes.id is not None:
-                    ids_raw = res.boxes.id
-
-                    # Kiểm tra nếu là PyTorch Tensor (thường xảy ra khi dùng GPU)
-                    import torch
-
-                    if isinstance(ids_raw, torch.Tensor):
-                        ids = ids_raw.cpu().numpy().astype(int).tolist()
-                    else:
-                        # Nếu đã là NumPy array (thường xảy ra khi chạy CPU)
-                        ids = ids_raw.astype(int).tolist()
-
-                    for i, obj_id in enumerate(ids):
-                        if obj_id not in self.last_tracked_ids:
-                            self.last_tracked_ids.add(obj_id)
-
-                            # Đếm xe
-                            label = res.names[int(res.boxes[i].cls[0])]
-                            self.counts[label] = self.counts.get(label, 0) + 1
-                            # Gửi data mới cho UI
-                            self.stats_signal.emit(self.counts)
-
-                            # Giới hạn kích thước bộ nhớ ID
-                            if len(self.last_tracked_ids) > 100:
-                                self.last_tracked_ids.clear()
-
-                            try:
-                                # Lấy thông tin box
-                                box = res.boxes[i]
-                                x1, y1, x2, y2 = box.xyxy[0].int().cpu().tolist()
-                                label = res.names[int(box.cls[0])]
-                                conf = float(box.conf[0])
-
-                                # Cắt ảnh đối tượng
-                                crop = frame[max(0, y1) : y2, max(0, x1) : x2]
-                                if crop.size > 0:
-                                    self.new_detection_signal.emit(
-                                        {
-                                            "id": obj_id,
-                                            "label": label,
-                                            "conf": conf,
-                                            "image": crop,
-                                            "time": datetime.now().strftime("%H:%M:%S"),
-                                        }
-                                    )
-                            except Exception:
-                                pass
+                    # Gửi data về UI (bổ sung thêm timestamp tại thread)
+                    det["time"] = datetime.now().strftime("%H:%M:%S")
+                    self.new_detection_signal.emit(det)
 
                 # Chuyển đổi BGR (OpenCV) sang RGB (PyQt)
                 rgb_image = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
@@ -150,9 +112,13 @@ class VideoThread(QThread):
                 ).copy()
                 self.change_pixmap_signal.emit(qt_image)
 
-            cap.release()
         except Exception as e:
-            print(f"[!] LỖI NGHIÊM TRỌNG TRONG THREAD: {e}")
+            error_info = f"LỖI KHỞI TẠO: {str(e)}"
+            self.progress_signal.emit(error_info, 0)
+            print(f"[!] {error_info}")
+        finally:
+            if "cap" in locals() and cap is not None:
+                cap.release()
 
     def pause(self) -> None:
         self._is_paused = True
