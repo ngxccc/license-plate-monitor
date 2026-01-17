@@ -25,7 +25,7 @@ We recommend using **uv** for extremely fast setup and package management.
 1. **Clone the repository:**
 
    ```bash
-   git clone [https://github.com/ngxccc/license-plate-monitor.git](https://github.com/ngxccc/license-plate-monitor.git)
+   git clone https://github.com/ngxccc/license-plate-monitor.git
    cd license-plate-monitor
    ```
 

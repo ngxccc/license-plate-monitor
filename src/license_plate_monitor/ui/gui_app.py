@@ -54,8 +54,8 @@ class MainWindow(QMainWindow):
             """
         )
         self.progress_bar.setTextVisible(True)
-        self.progress_bar.setValue(50)
-        self.progress_bar.show()
+        self.progress_bar.setValue(0)
+        self.progress_bar.hide()
 
         # Notification Area
         self.status_bar = QStatusBar()

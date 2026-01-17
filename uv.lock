@@ -510,6 +510,34 @@ wheels = [
 ]
 
 [[package]]
+name = "license-plate-monitor"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "lapx" },
+    { name = "pyqt6" },
+    { name = "ultralytics" },
+    { name = "yt-dlp", extra = ["default"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "lapx" },
+    { name = "mypy", marker = "extra == 'dev'" },
+    { name = "pyqt6" },
+    { name = "ruff", marker = "extra == 'dev'" },
+    { name = "ultralytics" },
+    { name = "yt-dlp", extras = ["default"] },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "markupsafe"
 version = "3.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1424,34 +1452,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/36/9b/0f3b9ff3d0225ee2324ec663de0e7fb3eb855615ca958ac1875f22f1f8e5/torchvision-0.24.1-cp314-cp314t-manylinux_2_28_x86_64.whl", hash = "sha256:9ef95d819fd6df81bc7cc97b8f21a15d2c0d3ac5dbfaab5cbc2d2ce57114b19e", size = 8177422, upload-time = "2025-11-12T15:25:37.357Z" },
     { url = "https://files.pythonhosted.org/packages/d6/ab/e2bcc7c2f13d882a58f8b30ff86f794210b075736587ea50f8c545834f8a/torchvision-0.24.1-cp314-cp314t-win_amd64.whl", hash = "sha256:480b271d6edff83ac2e8d69bbb4cf2073f93366516a50d48f140ccfceedb002e", size = 4335190, upload-time = "2025-11-12T15:25:35.745Z" },
 ]
-
-[[package]]
-name = "traffic-monitor"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "lapx" },
-    { name = "pyqt6" },
-    { name = "ultralytics" },
-    { name = "yt-dlp", extra = ["default"] },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "lapx" },
-    { name = "mypy", marker = "extra == 'dev'" },
-    { name = "pyqt6" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "ultralytics" },
-    { name = "yt-dlp", extras = ["default"] },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "triton"

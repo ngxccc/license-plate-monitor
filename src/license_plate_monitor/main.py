@@ -1,12 +1,13 @@
 import logging
+import os
 import sys
 import traceback
 from types import TracebackType
 
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
 from license_plate_monitor.ui.gui_app import MainWindow
-
 
 
 # Hàm này sẽ bắt mọi lỗi chưa được xử lý và in ra terminal
@@ -30,6 +31,11 @@ def main() -> None:
 
     # Khởi tạo ứng dụng PyQt6
     app = QApplication(sys.argv)
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    icon_path = os.path.join(current_dir, "ui", "assets", "icons", "app-icon.png")
+
+    app.setWindowIcon(QIcon(icon_path))
 
     # Khởi tạo cửa sổ chính
     window = MainWindow()
