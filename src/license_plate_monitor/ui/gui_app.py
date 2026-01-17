@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from license_plate_monitor.ai.detector import LicensePlateDetector
 from PyQt6.QtGui import QCloseEvent, QImage, QPixmap
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDoubleSpinBox,
     QGroupBox,
@@ -104,6 +105,17 @@ class MainWindow(QMainWindow):
         self.conf_spin.setValue(0.5)
         self.conf_spin.setFixedWidth(80)
         control_layout.addWidget(self.conf_spin)
+
+        self.show_labels_cb = QCheckBox("Hiện nhãn")
+        self.show_labels_cb.setChecked(True)
+        self.show_labels_cb.setStyleSheet("color: white;")
+
+        self.show_boxes_cb = QCheckBox("Hiện khung")
+        self.show_boxes_cb.setChecked(True)
+        self.show_boxes_cb.setStyleSheet("color: white;")
+
+        control_layout.addWidget(self.show_labels_cb)
+        control_layout.addWidget(self.show_boxes_cb)
 
         # Nút Start/Stop
         self.start_btn = QPushButton("Bắt đầu")
@@ -255,10 +267,19 @@ class MainWindow(QMainWindow):
             self.progress_bar.show()
             self.progress_bar.setValue(0)
             self.stats_label.setText("📊 THỐNG KÊ: Đang khởi tạo...")
+
             conf_threshold = self.conf_spin.value()
+            show_labels = self.show_labels_cb.isChecked()
+            show_boxes = self.show_boxes_cb.isChecked()
 
             self.video_thread = VideoThread(
-                source, source_type, res, self.stored_detector, conf_threshold
+                source,
+                source_type,
+                res,
+                self.stored_detector,
+                conf_threshold,
+                show_labels,
+                show_boxes,
             )
 
             self.video_thread.progress_signal.connect(self.update_notification)

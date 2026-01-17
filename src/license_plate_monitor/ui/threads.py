@@ -27,6 +27,8 @@ class VideoThread(QThread):
         resolution: str,
         detector: LicensePlateDetector | None = None,
         conf_threshold: float = 0.5,
+        show_labels: bool = True,
+        show_boxes: bool = True,
     ):
         super().__init__()
         self.source = source
@@ -38,6 +40,8 @@ class VideoThread(QThread):
         # Tổng số lượng theo từng loại xe
         self.counts: dict[str, int] = {}
         self.conf_threshold = conf_threshold
+        self.show_labels = show_labels
+        self.show_boxes = show_boxes
 
     def _initialize_detector(self) -> None:
         """Helper để nạp mô hình AI"""
@@ -85,8 +89,17 @@ class VideoThread(QThread):
                     continue
 
                 success, frame = cap.read()
+
                 if not success:
-                    break
+                    print("[!] Mất kết nối. Đang thử kết nối lại...")
+                    cap.release()
+                    self.msleep(1000)
+                    cap = self._setup_capture()
+                    if not cap.isOpened():
+                        continue
+                    success, frame = cap.read()
+                    if not success:
+                        break
 
                 h, w = frame.shape[:2]
 
@@ -94,7 +107,7 @@ class VideoThread(QThread):
                 if self.detector is None:
                     break
                 annotated_frame, detections = self.detector.process_frame(
-                    frame, self.conf_threshold
+                    frame, self.conf_threshold, self.show_labels, self.show_boxes
                 )
 
                 for det in detections:

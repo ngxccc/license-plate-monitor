@@ -11,7 +11,11 @@ class LicensePlateDetector:
         self.last_tracked_ids: set[int] = set()
 
     def process_frame(
-        self, frame: npt.NDArray[Any], conf_threshold: float
+        self,
+        frame: npt.NDArray[Any],
+        conf_threshold: float,
+        show_labels: bool,
+        show_boxes: bool,
     ) -> tuple[npt.NDArray[Any], list[dict[str, Any]]]:
         """
         Xử lý frame và trả về ảnh đã vẽ cùng danh sách các đối tượng mới phát hiện.
@@ -29,7 +33,7 @@ class LicensePlateDetector:
             return frame, []
 
         res = results[0]
-        annotated_frame = res.plot(labels=False)
+        annotated_frame = res.plot(labels=show_labels, boxes=show_boxes)
         new_detections = []
 
         ids_raw = res.boxes.id if res.boxes is not None else None
