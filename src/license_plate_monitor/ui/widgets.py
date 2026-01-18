@@ -132,7 +132,7 @@ class SourceTab(QWidget):
         self.combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
 
         self.input = QLineEdit()
-        self.input.setPlaceholderText("Nhập URL YouTube hoặc đường dẫn file...")
+        self.input.setPlaceholderText("Nhập URL YouTube")
 
         self.res_combo = QComboBox()
         self.res_combo.setEnabled(False)

@@ -172,8 +172,26 @@ class MainWindow(QMainWindow):
 
     def on_source_type_changed(self, text: str) -> None:
         """Tự động ẩn/hiện độ phân giải tùy theo nguồn"""
-        is_youtube = text.lower() == "youtube"
-        self.source_tab.combo.setEnabled(is_youtube)
+        source_type = text.lower()
+        is_youtube = source_type == "youtube"
+        is_webcam = source_type == "webcam"
+
+        self.source_tab.res_combo.setEnabled(is_youtube)
+        self.source_tab.input.setEnabled(not is_webcam)
+        self.source_tab.input.clear()
+
+        if not is_youtube:
+            self.source_tab.res_combo.clear()
+
+        match source_type:
+            case "youtube":
+                self.source_tab.input.setPlaceholderText("Nhập URL YouTube")
+            case "webcam":
+                self.source_tab.input.setPlaceholderText("Không cần nhập")
+            case "local file":
+                self.source_tab.input.setPlaceholderText("Nhập đường dẫn file")
+            case "rtsp":
+                self.source_tab.input.setPlaceholderText("Nhập địa chỉ RTSP")
 
     def toggle_detection(self) -> None:
         """Xử lý sự kiện nhấn nút Bắt đầu / Dừng hẳn"""
