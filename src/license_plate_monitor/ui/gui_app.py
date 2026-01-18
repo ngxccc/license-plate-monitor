@@ -8,6 +8,7 @@ from license_plate_monitor.ui.widgets import (
     DetectionCard,
     SettingsDock,
     SourceTab,
+    StatsDock,
 )
 
 if TYPE_CHECKING:
@@ -72,9 +73,13 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.source_tab, "📡 Nguồn Video")
         self.tabs.addTab(self.ai_tab, "🤖 Cấu hình AI")
 
-        # DOCK
+        # DOCKS
         self.dock_settings = SettingsDock(self)
+        self.stats_dock = StatsDock(self)
+
         self.dock_settings.setWidget(self.tabs)
+
+        self.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self.stats_dock)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_settings)
 
         # MENU BAR
@@ -84,6 +89,10 @@ class MainWindow(QMainWindow):
         show_settings_action = cast(QAction, self.dock_settings.toggleViewAction())
         show_settings_action.setText("Bảng cài đặt")
 
+        stats_toggle_action = cast(QAction, self.stats_dock.toggleViewAction())
+        stats_toggle_action.setText("Bảng thống kê")
+
+        view_menu.addAction(stats_toggle_action)
         view_menu.addAction(show_settings_action)
 
         # Layout chính
@@ -117,16 +126,16 @@ class MainWindow(QMainWindow):
         self.status_bar.setStyleSheet("font-size: 14px;")
 
         # Dashboard Bar
-        self.stats_widget = QWidget()
-        self.stats_widget.setStyleSheet(
-            "background-color: #252525; border-bottom: 1px solid #444;"
-        )
-        self.stats_layout = QHBoxLayout(self.stats_widget)
-        self.stats_label = QLabel("📊 THỐNG KÊ: Đang chờ dữ liệu...")
-        self.stats_label.setStyleSheet(
-            "color: #00FF00; font-weight: bold; font-size: 16px;"
-        )
-        self.stats_layout.addWidget(self.stats_label)
+        # self.stats_widget = QWidget()
+        # self.stats_widget.setStyleSheet(
+        #     "background-color: #252525; border-bottom: 1px solid #444;"
+        # )
+        # self.stats_layout = QHBoxLayout(self.stats_widget)
+        # self.stats_label = QLabel("📊 THỐNG KÊ: Đang chờ dữ liệu...")
+        # self.stats_label.setStyleSheet(
+        #     "color: #00FF00; font-weight: bold; font-size: 16px;"
+        # )
+        # self.stats_layout.addWidget(self.stats_label)
 
         self.source_tab.combo.currentTextChanged.connect(self.on_source_type_changed)
         self.source_tab.input.textChanged.connect(self.on_url_changed)
@@ -151,7 +160,7 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(self.sidebar_scroll, stretch=1)
 
         # Thêm vào main layout
-        main_vbox.addWidget(self.stats_widget)
+        # main_vbox.addWidget(self.stats_widget)
         main_vbox.addWidget(self.action_group)
         main_vbox.addWidget(self.progress_bar)
         main_vbox.addLayout(content_layout)
@@ -164,7 +173,7 @@ class MainWindow(QMainWindow):
         """Cập nhật dòng chữ thống kê trên Dashboard"""
         stat_items = [f"{label.upper()}: {value}" for label, value in counts.items()]
         display_text = "  |  ".join(stat_items)
-        self.stats_label.setText(f"📊 THỐNG KÊ: {display_text}")
+        self.stats_dock.update_text(f"📊 THỐNG KÊ: {display_text}")
 
     def update_video(self, qt_image: QImage) -> None:
         pixmap = QPixmap.fromImage(qt_image)
@@ -251,7 +260,7 @@ class MainWindow(QMainWindow):
 
             self.progress_bar.show()
             self.progress_bar.setValue(0)
-            self.stats_label.setText("📊 THỐNG KÊ: Đang khởi tạo...")
+            self.stats_dock.update_text("📊 THỐNG KÊ: Đang chờ dữ liệu...")
 
             conf_threshold = self.ai_tab.conf_spin.value()
             show_labels = self.ai_tab.show_labels.isChecked()

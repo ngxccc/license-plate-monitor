@@ -145,3 +145,33 @@ class SettingsDock(QDockWidget):
             | QDockWidget.DockWidgetFeature.DockWidgetMovable
             | QDockWidget.DockWidgetFeature.DockWidgetFloatable
         )
+
+
+class StatsDock(QDockWidget):
+    """Dock hiển thị thông tin thống kê số lượng phương tiện"""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__("Thống kê dữ liệu", parent)
+
+        self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        self.setFeatures(
+            QDockWidget.DockWidgetFeature.DockWidgetClosable
+            | QDockWidget.DockWidgetFeature.DockWidgetMovable
+            | QDockWidget.DockWidgetFeature.DockWidgetFloatable
+        )
+
+        # Widget bên trong Dock
+        self.inner_widget = QWidget()
+        self.setWidget(self.inner_widget)
+        self.inner_widget.setStyleSheet("background-color: #252525;")
+
+        layout = QHBoxLayout(self.inner_widget)
+        self.stats_label = QLabel("📊 THỐNG KÊ: Chưa có dữ liệu")
+        self.stats_label.setStyleSheet(
+            "color: #00FF00; font-weight: bold; font-size: 16px;"
+        )
+        layout.addWidget(self.stats_label)
+
+    def update_text(self, text: str) -> None:
+        """Cập nhật nội dung hiển thị"""
+        self.stats_label.setText(text)
