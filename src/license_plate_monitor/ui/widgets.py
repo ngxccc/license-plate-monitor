@@ -5,6 +5,7 @@ from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDockWidget,
     QDoubleSpinBox,
     QFrame,
     QGridLayout,
@@ -132,3 +133,15 @@ class AISettingTab(QWidget):
         layout.addWidget(self.show_boxes)
         layout.addWidget(self.auto_save)
         layout.addStretch()
+
+
+class SettingsDock(QDockWidget):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__("Cài đặt hệ thống", parent)
+        self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        # Cho phép đóng, di chuyển và tắt
+        self.setFeatures(
+            QDockWidget.DockWidgetFeature.DockWidgetClosable
+            | QDockWidget.DockWidgetFeature.DockWidgetMovable
+            | QDockWidget.DockWidgetFeature.DockWidgetFloatable
+        )

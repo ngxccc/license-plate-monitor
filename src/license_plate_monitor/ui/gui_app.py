@@ -1,18 +1,25 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from PyQt6.QtCore import Qt, QTimer
 
 from license_plate_monitor.ui.threads import VideoThread, YoutubeInfoThread
-from license_plate_monitor.ui.widgets import AISettingTab, DetectionCard, SourceTab
+from license_plate_monitor.ui.widgets import (
+    AISettingTab,
+    DetectionCard,
+    SettingsDock,
+    SourceTab,
+)
 
 if TYPE_CHECKING:
     from license_plate_monitor.ai.detector import LicensePlateDetector
-from PyQt6.QtGui import QCloseEvent, QImage, QPixmap
+from PyQt6.QtGui import QAction, QCloseEvent, QImage, QPixmap
 from PyQt6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMenu,
+    QMenuBar,
     QProgressBar,
     QPushButton,
     QScrollArea,
@@ -31,13 +38,6 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #1a1a1a;")
         self.video_thread: VideoThread | None = None
         self.stored_detector: LicensePlateDetector | None = None
-
-        self.tabs = QTabWidget()
-        self.source_tab = SourceTab()
-        self.ai_tab = AISettingTab()
-
-        self.tabs.addTab(self.source_tab, "📡 Nguồn Video")
-        self.tabs.addTab(self.ai_tab, "🤖 Cấu hình AI")
 
         self.action_group = QGroupBox("Thao tác nhanh")
         action_layout = QHBoxLayout(self.action_group)
@@ -63,6 +63,28 @@ class MainWindow(QMainWindow):
         action_layout.addWidget(self.start_btn)
         action_layout.addWidget(self.pause_btn)
         action_layout.addWidget(self.clear_sidebar_btn)
+
+        # TABS
+        self.tabs = QTabWidget()
+        self.source_tab = SourceTab()
+        self.ai_tab = AISettingTab()
+
+        self.tabs.addTab(self.source_tab, "📡 Nguồn Video")
+        self.tabs.addTab(self.ai_tab, "🤖 Cấu hình AI")
+
+        # DOCK
+        self.dock_settings = SettingsDock(self)
+        self.dock_settings.setWidget(self.tabs)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_settings)
+
+        # MENU BAR
+        menu_bar = cast(QMenuBar, self.menuBar())
+        view_menu = cast(QMenu, menu_bar.addMenu("Hiển thị"))
+
+        show_settings_action = cast(QAction, self.dock_settings.toggleViewAction())
+        show_settings_action.setText("Bảng cài đặt")
+
+        view_menu.addAction(show_settings_action)
 
         # Layout chính
         main_vbox = QVBoxLayout()
@@ -130,7 +152,6 @@ class MainWindow(QMainWindow):
 
         # Thêm vào main layout
         main_vbox.addWidget(self.stats_widget)
-        main_vbox.addWidget(self.tabs)
         main_vbox.addWidget(self.action_group)
         main_vbox.addWidget(self.progress_bar)
         main_vbox.addLayout(content_layout)
