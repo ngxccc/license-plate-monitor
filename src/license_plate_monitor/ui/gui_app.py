@@ -156,6 +156,8 @@ class MainWindow(QMainWindow):
         self.source_tab.combo.currentTextChanged.connect(self.on_source_type_changed)
         self.source_tab.input.textChanged.connect(self.on_url_changed)
 
+        self.ai_tab.reset_btn.clicked.connect(self.reset_settings)
+
     def save_settings(self) -> None:
         """Lưu toàn bộ cấu hình vào máy"""
         # Source Settings
@@ -185,6 +187,27 @@ class MainWindow(QMainWindow):
         self.ai_tab.auto_save.setChecked(
             self.settings.value("auto_save", "true") == "true"
         )
+
+    def reset_settings(self) -> None:
+        """Khôi phục toàn bộ cấu hình về giá trị mặc định ban đầu"""
+        # Xóa toàn bộ dữ liệu đã lưu trong QSettings
+        self.settings.clear()
+
+        # Đặt lại giá trị mặc định cho UI của SourceTab
+        self.source_tab.combo.setCurrentText("YouTube")
+        self.source_tab.input.clear()
+        self.source_tab.res_combo.clear()
+        self.source_tab.res_combo.setEnabled(False)
+
+        # Đặt lại giá trị mặc định cho UI của AISettingTab
+        self.ai_tab.conf_spin.setValue(0.65)
+        self.ai_tab.show_labels.setChecked(True)
+        self.ai_tab.show_boxes.setChecked(True)
+        self.ai_tab.auto_save.setChecked(True)
+
+        # Thông báo cho người dùng
+        self.status_bar.showMessage("Đã đặt lại cấu hình mặc định.", 5000)
+        print("[*] Cấu hình đã được đưa về mặc định.")
 
     def update_stats(self, counts: dict[str, int]) -> None:
         """Cập nhật dòng chữ thống kê trên Dashboard"""

@@ -3,10 +3,8 @@ from typing import Any, cast
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import (
-    QCheckBox,
     QComboBox,
     QDockWidget,
-    QDoubleSpinBox,
     QFrame,
     QGridLayout,
     QHBoxLayout,
@@ -16,6 +14,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from license_plate_monitor.ui.utils import StyledButton, StyledCheckBox, StyledSpinBox
 
 
 class DetectionCard(QFrame):
@@ -155,27 +155,24 @@ class AISettingTab(QWidget):
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.conf_spin = QDoubleSpinBox()
-        self.conf_spin.setRange(0.1, 1.0)
-        self.conf_spin.setSingleStep(0.05)
-        self.conf_spin.setValue(0.65)
+        self.conf_spin = StyledSpinBox(0.1, 1.0, 0.05, 0.65)
 
-        self.show_labels = QCheckBox("Hiện nhãn văn bản")
-        self.show_labels.setStyleSheet("color: white;")
+        self.show_labels = StyledCheckBox("Hiện nhãn văn bản")
+        self.show_boxes = StyledCheckBox("Hiện khung bao (Boxes)")
 
-        self.show_boxes = QCheckBox("Hiện khung bao (Boxes)")
-        self.show_boxes.setStyleSheet("color: white;")
-
-        self.auto_save = QCheckBox("Tự động lưu ảnh vào máy")
-        self.auto_save.setStyleSheet("color: white;")
+        self.auto_save = StyledCheckBox("Tự động lưu ảnh vào máy")
         self.auto_save.setToolTip("Lưu ảnh cắt biển số vào thư mục 'detections'")
         self.auto_save.setChecked(True)
+
+        self.reset_btn = StyledButton("Đặt lại mặc định", hover_color="#c62828")
+        self.reset_btn.update_style("margin-top: 10px")
 
         layout.addWidget(QLabel("Độ tin cậy (Confidence):"))
         layout.addWidget(self.conf_spin)
         layout.addWidget(self.show_labels)
         layout.addWidget(self.show_boxes)
         layout.addWidget(self.auto_save)
+        layout.addWidget(self.reset_btn)
         layout.addStretch()
 
 
@@ -210,7 +207,7 @@ class StatsDock(QDockWidget):
         self.inner_widget.setStyleSheet("background-color: #252525;")
 
         layout = QHBoxLayout(self.inner_widget)
-        self.stats_label = QLabel("📊 THỐNG KÊ: Chưa có dữ liệu")
+        self.stats_label = QLabel("Thống kê: Chưa có dữ liệu")
         self.stats_label.setStyleSheet(
             "color: #00FF00; font-weight: bold; font-size: 16px;"
         )
