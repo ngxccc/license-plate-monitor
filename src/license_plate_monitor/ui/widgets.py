@@ -126,6 +126,7 @@ class SourceTab(QWidget):
         super().__init__()
         layout = QGridLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        layout.setVerticalSpacing(10)
 
         self.combo = QComboBox()
         self.combo.addItems(["YouTube", "Webcam", "Local File", "RTSP"])
@@ -152,6 +153,7 @@ class AISettingTab(QWidget):
     def __init__(self) -> None:
         super().__init__()
         layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.conf_spin = QDoubleSpinBox()
         self.conf_spin.setRange(0.1, 1.0)

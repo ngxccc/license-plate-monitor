@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, cast
 
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import QSettings, Qt, QTimer
 
 from license_plate_monitor.ui.threads import VideoThread, YoutubeInfoThread
 from license_plate_monitor.ui.widgets import (
@@ -33,23 +33,14 @@ from PyQt6.QtWidgets import (
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+        self.settings = QSettings("Ngxccc", "LicensePlateMonitor")
         self._init_ui_settings()
         self._create_widgets()
         self._setup_layouts()
         self._setup_docks_and_menus()
         self._connect_signals()
 
-        # Nút Start/Stop
-        self.start_btn.setStyleSheet(
-            "background-color: #2e7d32; color: white; font-weight: bold;"
-        )
-
-        # Nút Tạm dừng
-        self.pause_btn.setEnabled(False)
-
-        # Clear History Button
-        self.clear_btn.setStyleSheet("background-color: #444; color: white;")
-        self.clear_btn.setEnabled(False)
+        QTimer.singleShot(0, self.load_settings)
 
     def _init_ui_settings(self) -> None:
         self.setWindowTitle("License Plate Monitor System")
@@ -72,9 +63,20 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.ai_tab, "🤖 Cấu hình AI")
 
         # Actions & Status
+        # Start/Stop Button
         self.start_btn = QPushButton("Bắt đầu")
+        self.start_btn.setStyleSheet(
+            "background-color: #2e7d32; color: white; font-weight: bold;"
+        )
+
+        # Pause Button
         self.pause_btn = QPushButton("Tạm dừng")
+        self.pause_btn.setEnabled(False)
+
+        # Clear History Button
         self.clear_btn = QPushButton("Xóa lịch sử")
+        self.clear_btn.setStyleSheet("background-color: #444; color: white;")
+        self.clear_btn.setEnabled(False)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setStyleSheet(
@@ -153,6 +155,36 @@ class MainWindow(QMainWindow):
 
         self.source_tab.combo.currentTextChanged.connect(self.on_source_type_changed)
         self.source_tab.input.textChanged.connect(self.on_url_changed)
+
+    def save_settings(self) -> None:
+        """Lưu toàn bộ cấu hình vào máy"""
+        # Source Settings
+        self.settings.setValue("source_type", self.source_tab.combo.currentText())
+        self.settings.setValue("source_path", self.source_tab.input.text())
+
+        # AI Settings
+        self.settings.setValue("conf", self.ai_tab.conf_spin.value())
+        self.settings.setValue("labels", self.ai_tab.show_labels.isChecked())
+        self.settings.setValue("boxes", self.ai_tab.show_boxes.isChecked())
+        self.settings.setValue("auto_save", self.ai_tab.auto_save.isChecked())
+        print("[*] Đã lưu cấu hình.")
+
+    def load_settings(self) -> None:
+        """Nạp lại cấu hình từ lần trước"""
+        s_type = self.settings.value("source_type", "YouTube")
+        self.source_tab.combo.setCurrentText(str(s_type))
+        self.source_tab.input.setText(str(self.settings.value("source_path", "")))
+
+        self.ai_tab.conf_spin.setValue(float(self.settings.value("conf", 0.65)))
+        self.ai_tab.show_labels.setChecked(
+            self.settings.value("labels", "true") == "true"
+        )
+        self.ai_tab.show_boxes.setChecked(
+            self.settings.value("boxes", "true") == "true"
+        )
+        self.ai_tab.auto_save.setChecked(
+            self.settings.value("auto_save", "true") == "true"
+        )
 
     def update_stats(self, counts: dict[str, int]) -> None:
         """Cập nhật dòng chữ thống kê trên Dashboard"""
@@ -326,6 +358,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         """Dừng luồng AI, Giải phóng Camera, Chấp nhận đóng, Tự động gọi"""
+        self.save_settings()
         if self.video_thread is not None:
             self.video_thread.stop()
         if event:
