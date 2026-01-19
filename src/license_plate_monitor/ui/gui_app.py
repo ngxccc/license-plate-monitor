@@ -59,8 +59,8 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.source_tab = SourceTab()
         self.ai_tab = AISettingTab()
-        self.tabs.addTab(self.source_tab, "📡 Nguồn Video")
-        self.tabs.addTab(self.ai_tab, "🤖 Cấu hình AI")
+        self.tabs.addTab(self.source_tab, "Nguồn Video")
+        self.tabs.addTab(self.ai_tab, "Cấu hình AI")
 
         # Actions & Status
         # Start/Stop Button
@@ -213,7 +213,7 @@ class MainWindow(QMainWindow):
         """Cập nhật dòng chữ thống kê trên Dashboard"""
         stat_items = [f"{label.upper()}: {value}" for label, value in counts.items()]
         display_text = "  |  ".join(stat_items)
-        self.stats_dock.update_text(f"📊 THỐNG KÊ: {display_text}")
+        self.stats_dock.update_text(f"THỐNG KÊ: {display_text}")
 
     def update_video(self, qt_image: QImage) -> None:
         pixmap = QPixmap.fromImage(qt_image)
@@ -259,7 +259,7 @@ class MainWindow(QMainWindow):
             self.video_thread = None  # Set None tránh trỏ đến vùng nhớ không tồn tại
 
             self.video_label.clear()
-            self.video_label.setText("⏹️ HỆ THỐNG ĐÃ DỪNG")
+            self.video_label.setText("HỆ THỐNG ĐÃ DỪNG")
             self.video_label.setStyleSheet(
                 "color: #FF5555; font-weight: bold; font-size: 18px;"
             )
@@ -284,7 +284,7 @@ class MainWindow(QMainWindow):
 
             self.progress_bar.show()
             self.progress_bar.setValue(0)
-            self.stats_dock.update_text("📊 THỐNG KÊ: Đang chờ dữ liệu...")
+            self.stats_dock.update_text("THỐNG KÊ: Đang chờ dữ liệu...")
 
             conf_threshold = self.ai_tab.conf_spin.value()
             show_labels = self.ai_tab.show_labels.isChecked()

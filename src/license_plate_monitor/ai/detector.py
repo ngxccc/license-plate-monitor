@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Any
 
 import numpy.typing as npt
@@ -8,7 +9,7 @@ from ultralytics import YOLO
 class LicensePlateDetector:
     def __init__(self, model_name: str = r"models\yolo26n-trained_int8_openvino_model"):
         self.model = YOLO(model_name, task="detect")
-        self.last_tracked_ids: set[int] = set()
+        self.last_tracked_ids: deque[int] = deque(maxlen=1000)
 
     def process_frame(
         self,
@@ -67,11 +68,8 @@ class LicensePlateDetector:
                     and x2 < (w - margin)
                     and y2 < (h - margin)
                 ):
-                    self.last_tracked_ids.add(obj_id)
+                    self.last_tracked_ids.append(obj_id)
 
-                    # Giới hạn kích thước bộ nhớ ID để tránh tràn vùng nhớ
-                    if len(self.last_tracked_ids) > 100:
-                        self.last_tracked_ids.clear()
                     crop = self.crop_box(frame, coords)
 
                     if crop.size > 0:

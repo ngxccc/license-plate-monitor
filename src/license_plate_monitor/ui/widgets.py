@@ -84,7 +84,7 @@ class DetectionSidebar(QScrollArea):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        # self.setWidgetResizable(True)
+        self.setWidgetResizable(True)
         self.setFixedWidth(300)
 
         self.container = QWidget()
